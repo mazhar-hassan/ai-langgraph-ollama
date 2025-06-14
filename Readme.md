@@ -2,6 +2,9 @@
 
 We are using Ollama as our LLM (to run on local machine) and the model we will be using is `llama3.2:1b`
 
+> This is Multi Agent Hello-World code sample, all this information is learned from multiple tutorials.
+
+
 In our system we will create 2 Agents, One for emotional support and the second one for Logical Reasoning, it is built this way to only showcase multi-agent.
 Why they are same? because both are using same LLM which is not fine-tuned for Emotional support or Logical Reasoning (Its out of the scope of hello-world tutorial).
 
@@ -57,5 +60,27 @@ On Ollama site you can find a list of models, select that best suites you and do
 ### Install Python dependencies
 
 `pip install langchain-ollama langgraph pydantic python-dotenv`
+
+
+## Updates
+### Phase 1 - Two models
+In phase one we added 2 models emotional and logical with history of 20 conversation
+
+Refer Branch [phase1-two-agents](https://github.com/mazhar-hassan/ai-langgraph-ollama/tree/phase1-two-agents)
+
+
+
+### Phase 2 - Conversation history
+In order to have context for our conversation with our AI system, a memory of 20 messages added to the code
+
+Refer Branch [phase2-conversation-history](https://github.com/mazhar-hassan/ai-langgraph-ollama/tree/phase2-conversation-history)
+
+### Phase 3 - Weather checking Agent (Internet access)
+In phase 3 we have defined a weather agent which extract city name from the conversation and make an http call to the internet (Weather APIs)
+and format the response accordingly
+
+Refer Branch [phase3-three-agents](https://github.com/mazhar-hassan/ai-langgraph-ollama/tree/phase3-three-agents)
+
+![LangGraph Flow](flow-of-langraph.png)
 
 

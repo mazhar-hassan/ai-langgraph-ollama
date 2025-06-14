@@ -1,0 +1,9 @@
+python-dotenv~=1.1.0
+langgraph~=0.4.8
+pydantic~=2.11.7
+requests~=2.32.4
+langchain-core~=0.3.65
+torch~=2.7.1
+numpy~=2.0.2
+joblib~=1.5.1
+scikit-learn~=1.6.1

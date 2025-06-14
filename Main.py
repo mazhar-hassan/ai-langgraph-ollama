@@ -4,9 +4,10 @@ Simplified Dual-Agent Chatbot using LangGraph and Ollama
 This chatbot routes user messages to one of two specialized agents:
 1. Emotional Agent: Provides empathy, emotional support, and therapeutic responses
 2. Logical Agent: Provides factual information, analysis, and logical reasoning
+3. Weather Agent: Provides weather details
 
 Architecture:
-    START → Classifier → Router → [Emotional Agent | Logical Agent] → END
+    START → Classifier → Router → [Emotional Agent | Logical Agent | Weather Agent] → END
 
 Requirements:
     - Ollama running locally with llama3.2:1b model
@@ -23,6 +24,7 @@ from pydantic import BaseModel, Field
 
 from agent_helpers import State, emotional_agent, logical_agent, llm
 from message_helper import print_history
+from weather_agent import weather_agent
 
 # Load environment variables
 load_dotenv()
@@ -38,9 +40,9 @@ class MessageClassifier(BaseModel):
     This ensures the LLM returns exactly one of the specified message types,
     with automatic validation and error handling.
     """
-    message_type: Literal["emotional", "logical"] = Field(
+    message_type: Literal["emotional", "logical", "weather"] = Field(
         ...,
-        description="Classify if the message requires an emotional (therapist) or logical response."
+        description="Classify if the message requires an emotional (therapist), logical, or weather response."
     )
 
 
@@ -74,13 +76,17 @@ def classify_message(state: State) -> dict:
         message_content = str(last_message)
 
     # System prompt for classification
-    system_prompt = """You are a message classifier. Analyze the user's message and classify it as either:
-
-- "emotional": if the message asks for emotional support, therapy, deals with feelings, personal problems, relationships, stress, anxiety, sadness, happiness, mental health, or seeks empathy and understanding
-
-- "logical": if the message asks for facts, information, explanations, how-to guides, technical questions, analysis, calculations, or seeks objective knowledge
-
-Respond with the classification in the exact format requested."""
+    system_prompt = """
+    Classify the following user message as either 'emotional', 'logical', or 'weather':
+    
+    - 'emotional': if it asks for emotional support, therapy, deals with feelings, or personal problems
+    - 'logical': if it asks for facts, information, logical analysis, or practical solutions
+    - 'weather': if it asks about weather, temperature, forecast, climate conditions, or weather-related queries
+    
+    User message: "{last_message.content}"
+    
+    Respond with only one word: either "emotional", "logical", or "weather"
+    """
 
     messages = [
         {"role": "system", "content": system_prompt},
@@ -106,6 +112,7 @@ Respond with the classification in the exact format requested."""
             
             - "emotional": emotional support, therapy, feelings, personal problems, relationships, stress, anxiety, mental health
             - "logical": facts, information, explanations, technical questions, analysis, calculations
+            - "weather": if it asks about weather, temperature, forecast, climate conditions, or weather-related queries
             
             User message: "{message_content}"
             
@@ -118,8 +125,10 @@ Respond with the classification in the exact format requested."""
             # Determine message type with fallback to logical
             if "emotional" in classification:
                 message_type = "emotional"
+            elif "weather" in classification:
+                message_type = "weather"
             else:
-                message_type = "logical"  # Default fallback
+                message_type = "logical"
 
             print(f"🔍 Classification (Manual): '{message_content[:50]}...' → {message_type}")
             return {"message_type": message_type}
@@ -142,8 +151,11 @@ def route_to_agent(state: State) -> dict:
     """
     message_type = state.get("message_type", "logical")
 
+    message_type = state.get("message_type", "logical")
     if message_type == "emotional":
         next_node = "emotional_agent"
+    elif message_type == "weather":
+        next_node = "weather_agent"
     else:
         next_node = "logical_agent"
 
@@ -173,6 +185,7 @@ def build_chatbot_graph() -> StateGraph:
     graph_builder.add_node("route_to_agent", route_to_agent)
     graph_builder.add_node("emotional_agent", emotional_agent)
     graph_builder.add_node("logical_agent", logical_agent)
+    graph_builder.add_node("weather_agent", weather_agent)
 
     # Define edges
     graph_builder.add_edge(START, "classify_message")
@@ -183,14 +196,16 @@ def build_chatbot_graph() -> StateGraph:
         "route_to_agent",
         lambda state: state.get("next"),
         {
+            "weather_agent": "weather_agent",
             "emotional_agent": "emotional_agent",
-            "logical_agent": "logical_agent"
+            "logical_agent": "logical_agent",
         }
     )
 
     # Both agents lead to END
     graph_builder.add_edge("emotional_agent", END)
     graph_builder.add_edge("logical_agent", END)
+    graph_builder.add_edge("weather_agent", END)
 
     # Compile the graph
     return graph_builder.compile()
