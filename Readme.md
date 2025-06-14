@@ -2,6 +2,16 @@
 
 We are using Ollama as our LLM (to run on local machine) and the model we will be using is `llama3.2:1b`
 
+In our system we will create 2 Agents, One for emotional support and the second one for Logical Reasoning, it is built this way to only showcase multi-agent.
+Why they are same? because both are using same LLM which is not fine-tuned for Emotional support or Logical Reasoning (Its out of the scope of hello-world tutorial).
+
+* **Classifier** It detects which Agent is suitable to answer the question
+* **Router** It is a simple node which forward the request to correct agent based on the classified message_type
+* **Agents** both agents are LLM use same model (`llama3.2:1b`)
+
+
+![LangGraph Flow](flow-lang-graph.png)
+
 > Read following before proceeding as this is hello-world tutorial for LangGraph
 ## Important Concepts
 ### LLM
@@ -48,6 +58,4 @@ On Ollama site you can find a list of models, select that best suites you and do
 
 `pip install langchain-ollama langgraph pydantic python-dotenv`
 
-### Flow
 
-![LangGraph Flow](flow-lang-graph.png)
