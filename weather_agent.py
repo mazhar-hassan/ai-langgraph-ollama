@@ -1,6 +1,6 @@
 import os
 import requests
-from agent_helpers import llm, State
+from agent_helpers import lama3_2_llm, State
 
 
 def get_weather_fake_data(city):
@@ -22,6 +22,7 @@ def get_weather_data(city):
         return {"error": "Weather API key not found. Please set OPENWEATHER_API_KEY in your .env file"}
 
     try:
+        print('***************** calling API ***********************')
         # Get current weather
         url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
         response = requests.get(url, timeout=10)
@@ -63,7 +64,7 @@ def extract_city_from_message(message_content):
     City name:
     """
 
-    result = llm.invoke([{"role": "user", "content": extraction_prompt}])
+    result = lama3_2_llm.invoke([{"role": "user", "content": extraction_prompt}])
     city = result.content.strip()
 
     # Default to a major city if extraction fails or returns generic response
@@ -80,8 +81,8 @@ def weather_agent(state: State):
     city = extract_city_from_message(last_message.content)
 
     # Get weather data
-    #weather_data = get_weather_data(city)
-    weather_data = get_weather_fake_data(city)
+    weather_data = get_weather_data(city)
+    #weather_data = get_weather_fake_data(city)
 
     if "error" in weather_data:
         response_content = f"Sorry, I couldn't get the weather information: {weather_data['error']}"

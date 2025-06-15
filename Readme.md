@@ -1,6 +1,6 @@
 # LangGraph Tutorial
 
-We are using Ollama as our LLM (to run on local machine) and the model we will be using is `llama3.2:1b`
+We are using Ollama as our LLM (to run on local machine) and the model we will be using is `llama3.2:1b` and `phi3:mini`
 
 > This is Multi Agent Hello-World code sample, all this information is learned from multiple tutorials.
 
@@ -10,7 +10,7 @@ Why they are same? because both are using same LLM which is not fine-tuned for E
 
 * **Classifier** It detects which Agent is suitable to answer the question
 * **Router** It is a simple node which forward the request to correct agent based on the classified message_type
-* **Agents** both agents are LLM use same model (`llama3.2:1b`)
+* **Agents** All three agents are using LLM, emotional agent will use `llama3.2:1b` whereas logical and weather agent will use `phi3:mini`
 
 
 ![LangGraph Flow](flow-lang-graph.png)
@@ -38,6 +38,8 @@ Ollama is a tool that simplifies running and managing large language models (LLM
 There are multiple free models (LLMs) that you can download and run with the help of Ollama
 
 `ollama pull llama3.2:1b`
+
+`ollama pull phi3:mini`
 
 In above example we are using llama3.2 LLM which is trained/support 1 billion parameters you can use its advanced version with more parameters, but obviously it will take more space and some impact on CPU as well.
 

@@ -18,32 +18,16 @@ Date: 2025
 """
 
 from dotenv import load_dotenv
-from typing import Literal
 from langgraph.graph import StateGraph, START, END
-from pydantic import BaseModel, Field
 
-from agent_helpers import State, emotional_agent, logical_agent, llm
-from message_helper import print_history
+
+from agent_helpers import State, emotional_agent, logical_agent, phi3_llm
+from classification_helper import classify_with_structured_output, classify_with_llm
+from message_helper import print_history, extract_last_message
 from weather_agent import weather_agent
 
 # Load environment variables
 load_dotenv()
-
-# =============================================================================
-# PYDANTIC MODELS FOR STRUCTURED OUTPUT
-# =============================================================================
-
-class MessageClassifier(BaseModel):
-    """
-    Pydantic model for automatic message classification with validation.
-
-    This ensures the LLM returns exactly one of the specified message types,
-    with automatic validation and error handling.
-    """
-    message_type: Literal["emotional", "logical", "weather"] = Field(
-        ...,
-        description="Classify if the message requires an emotional (therapist), logical, or weather response."
-    )
 
 
 # =============================================================================
@@ -52,7 +36,7 @@ class MessageClassifier(BaseModel):
 
 def classify_message(state: State) -> dict:
     """
-    Classify the user's message as either 'emotional' or 'logical' using structured output.
+     Classify the user's message as 'emotional', 'logical', or 'weather' using structured output.
 
     Args:
         state: Current conversation state containing messages
@@ -63,80 +47,17 @@ def classify_message(state: State) -> dict:
     Note:
         Uses Pydantic MessageClassifier for automatic validation and structured output.
         Falls back to manual parsing if structured output fails (for local models).
-    """
-    # Get the last message from user
-    last_message = state["messages"][-1]
+   """
 
-    # Extract content from message (handle both dict and AIMessage objects)
-    if hasattr(last_message, 'content'):  # AIMessage object
-        message_content = last_message.content
-    elif isinstance(last_message, dict):  # Dict format
-        message_content = last_message.get("content", "")
-    else:
-        message_content = str(last_message)
-
-    # System prompt for classification
-    system_prompt = """
-    Classify the following user message as either 'emotional', 'logical', or 'weather':
-    
-    - 'emotional': if it asks for emotional support, therapy, deals with feelings, or personal problems
-    - 'logical': if it asks for facts, information, logical analysis, or practical solutions
-    - 'weather': if it asks about weather, temperature, forecast, climate conditions, or weather-related queries
-    
-    User message: "{last_message.content}"
-    
-    Respond with only one word: either "emotional", "logical", or "weather"
-    """
-
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Classify this message: {message_content}"}
-    ]
+    message_content = extract_last_message(state)
 
     try:
-        # First, try using structured output with Pydantic validation
-        classifier_llm = llm.with_structured_output(MessageClassifier)
-        result = classifier_llm.invoke(messages)
-
-        print(f"🔍 Classification (Structured): '{message_content[:50]}...' → {result.message_type}")
-        return {"message_type": result.message_type}
-
+        #return classify_by_llm(logical_llm, message_content)
+        return classify_with_structured_output(phi3_llm, message_content)
     except Exception as structured_error:
         print(f"⚠️ Structured output failed: {structured_error}")
         print("🔄 Falling back to manual parsing...")
-
-        try:
-            # Fallback: Manual parsing for local models that don't support structured output
-            classification_prompt = f"""
-            Classify this user message as EXACTLY one word: either "emotional" or "logical"
-            
-            - "emotional": emotional support, therapy, feelings, personal problems, relationships, stress, anxiety, mental health
-            - "logical": facts, information, explanations, technical questions, analysis, calculations
-            - "weather": if it asks about weather, temperature, forecast, climate conditions, or weather-related queries
-            
-            User message: "{message_content}"
-            
-            Classification (one word only):
-            """
-
-            result = llm.invoke([{"role": "user", "content": classification_prompt}])
-            classification = result.content.strip().lower()
-
-            # Determine message type with fallback to logical
-            if "emotional" in classification:
-                message_type = "emotional"
-            elif "weather" in classification:
-                message_type = "weather"
-            else:
-                message_type = "logical"
-
-            print(f"🔍 Classification (Manual): '{message_content[:50]}...' → {message_type}")
-            return {"message_type": message_type}
-
-        except Exception as manual_error:
-            print(f"❌ Both classification methods failed: {manual_error}")
-            print("🔄 Defaulting to logical agent...")
-            return {"message_type": "logical"}
+        return classify_with_llm(phi3_llm, message_content)
 
 
 def route_to_agent(state: State) -> dict:
@@ -149,7 +70,6 @@ def route_to_agent(state: State) -> dict:
     Returns:
         dict: Routing decision for LangGraph
     """
-    message_type = state.get("message_type", "logical")
 
     message_type = state.get("message_type", "logical")
     if message_type == "emotional":
@@ -232,10 +152,11 @@ def run_chatbot():
 
     # Welcome message
     print("=" * 60)
-    print("🤖 DUAL-AGENT CHATBOT")
+    print("🤖 Triple-AGENT CHATBOT")
     print("=" * 60)
     print("💝 Emotional Agent: Provides empathy and emotional support")
     print("🧠 Logical Agent: Provides facts and logical analysis")
+    print("🌞 Weather Agent: Provides weather details")
     print()
     print("💬 Type your message and I'll route it to the right agent!")
     print("📝 Type 'exit', 'quit', or 'bye' to end the conversation")

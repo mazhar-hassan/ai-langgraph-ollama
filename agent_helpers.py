@@ -10,8 +10,15 @@ from message_helper import create_message_with_history, extract_last_message
 # =============================================================================
 
 # Initialize Ollama LLM
-llm = ChatOllama(
+lama3_2_llm = ChatOllama(
     model="llama3.2:1b",
+    base_url="http://localhost:11434",  # Default Ollama URL
+    temperature=0.7  # Balanced creativity/consistency
+)
+
+# Initialize Ollama LLM
+phi3_llm = ChatOllama(
+    model="phi3:mini",
     base_url="http://localhost:11434",  # Default Ollama URL
     temperature=0.7  # Balanced creativity/consistency
 )
@@ -69,7 +76,7 @@ def emotional_agent(state: State) -> dict:
 
     try:
         # Generate empathetic response
-        response = llm.invoke(messages)
+        response = lama3_2_llm.invoke(messages)
         print("💝 Emotional Agent responding...")
 
         return {"messages": [{"role": "assistant", "content": response.content}]}
@@ -113,7 +120,7 @@ def logical_agent(state: State) -> dict:
 
     try:
         # Generate logical response
-        response = llm.invoke(messages)
+        response = phi3_llm.invoke(messages)
         print("🧠 Logical Agent responding...")
 
         return {"messages": [{"role": "assistant", "content": response.content}]}
