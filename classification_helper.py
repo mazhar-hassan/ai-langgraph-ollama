@@ -10,7 +10,7 @@ from sympy import pretty_print
 
 class MessageClassifier(BaseModel):
     """
-    Pydantic model for automatic message classification with validation.
+    Pydantic models for automatic message classification with validation.
 
     This ensures the LLM returns exactly one of the specified message types,
     with automatic validation and error handling.

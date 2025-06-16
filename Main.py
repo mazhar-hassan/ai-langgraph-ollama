@@ -10,7 +10,7 @@ Architecture:
     START → Classifier → Router → [Emotional Agent | Logical Agent | Weather Agent] → END
 
 Requirements:
-    - Ollama running locally with llama3.2:1b model
+    - Ollama running locally with llama3.2:1b models
     - pip install langchain-ollama langgraph python-dotenv
 
 Author: Mazhar Hassan
@@ -24,7 +24,7 @@ from langgraph.graph import StateGraph, START, END
 from agent_helpers import State, emotional_agent, logical_agent, phi3_llm
 from classification_helper import classify_with_structured_output, classify_with_llm
 from message_helper import print_history, extract_last_message
-from weather_agent import weather_agent
+from agents.weather_agent import weather_agent
 
 # Load environment variables
 load_dotenv()
@@ -288,7 +288,7 @@ if __name__ == "__main__":
         print(f"\n💥 Fatal error: {e}")
         print("\n🔧 Troubleshooting:")
         print("   1. Ensure Ollama is running: ollama serve")
-        print("   2. Ensure model is installed: ollama pull llama3.2:1b")
+        print("   2. Ensure models is installed: ollama pull llama3.2:1b")
         print("   3. Check your internet connection")
         print("   4. Verify Python dependencies are installed")
 
