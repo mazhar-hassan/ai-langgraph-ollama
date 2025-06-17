@@ -1,15 +1,26 @@
-from train_model import LogicGateModel
+from agents.gate.train_model import LogicGateModel
 import torch
 import joblib
+from pathlib import Path
 
 # 4. INFERENCE WRAPPER
 class LogicGatePredictor:
-    def __init__(self, model_path="models/logic_gate_model.pth",
-                 info_path="models/logic_gate_info.pkl"):
+    def __init__(self):
+        # Get directory where THIS file (gate_agent.py) is located
+        file_dir = Path(__file__).parent
+
+        # Build absolute paths relative to this file
+        self.model_path = file_dir / "models" / "logic_gate_model.pth"
+        self.info_path = file_dir / "models" / "logic_gate_info.pkl"
+
+        # Convert to strings for compatibility
+        self.model_path = str(self.model_path)
+        self.info_path = str(self.info_path)
+
         self.model = LogicGateModel()
-        self.model.load_state_dict(torch.load(model_path, map_location='cpu'))
+        self.model.load_state_dict(torch.load(self.model_path, map_location='cpu'))
         self.model.eval()
-        self.info = joblib.load(info_path)
+        self.info = joblib.load(self.info_path)
 
     def predict(self, x, y, z):
         """
@@ -92,6 +103,9 @@ Logic: {x} {result['gate_type']} {y} = {result['prediction']}"""
 
     return logic_gate_agent
 
+
+def create_custom_gate_agent():
+    return create_logic_gate_agent(LogicGatePredictor())
 
 if __name__ == "__main__":
     # Test the predictor

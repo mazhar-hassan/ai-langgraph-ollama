@@ -25,6 +25,7 @@ from agent_helpers import State, emotional_agent, logical_agent, phi3_llm
 from classification_helper import classify_with_structured_output, classify_with_llm
 from message_helper import print_history, extract_last_message
 from agents.weather_agent import weather_agent
+from agents.gate.gate_agent import create_custom_gate_agent
 
 # Load environment variables
 load_dotenv()
@@ -76,6 +77,8 @@ def route_to_agent(state: State) -> dict:
         next_node = "emotional_agent"
     elif message_type == "weather":
         next_node = "weather_agent"
+    elif message_type == "logic_gate":
+        next_node = "logic_gate_agent"
     else:
         next_node = "logical_agent"
 
@@ -106,6 +109,7 @@ def build_chatbot_graph() -> StateGraph:
     graph_builder.add_node("emotional_agent", emotional_agent)
     graph_builder.add_node("logical_agent", logical_agent)
     graph_builder.add_node("weather_agent", weather_agent)
+    graph_builder.add_node("logic_gate_agent", create_custom_gate_agent())
 
     # Define edges
     graph_builder.add_edge(START, "classify_message")
@@ -119,6 +123,7 @@ def build_chatbot_graph() -> StateGraph:
             "weather_agent": "weather_agent",
             "emotional_agent": "emotional_agent",
             "logical_agent": "logical_agent",
+            "logic_gate_agent":"logic_gate_agent"
         }
     )
 
@@ -126,6 +131,7 @@ def build_chatbot_graph() -> StateGraph:
     graph_builder.add_edge("emotional_agent", END)
     graph_builder.add_edge("logical_agent", END)
     graph_builder.add_edge("weather_agent", END)
+    graph_builder.add_edge("logic_gate_agent", END)
 
     # Compile the graph
     return graph_builder.compile()
