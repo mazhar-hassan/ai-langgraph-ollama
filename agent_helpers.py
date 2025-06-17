@@ -16,7 +16,7 @@ lama3_2_llm = ChatOllama(
     temperature=0.7  # Balanced creativity/consistency
 )
 
-# Initialize Ollama LLM
+# Initialize Phi3 LLM
 phi3_llm = ChatOllama(
     model="phi3:mini",
     base_url="http://localhost:11434",  # Default Ollama URL

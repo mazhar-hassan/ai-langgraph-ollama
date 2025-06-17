@@ -5,13 +5,14 @@ This chatbot routes user messages to one of two specialized agents:
 1. Emotional Agent: Provides empathy, emotional support, and therapeutic responses
 2. Logical Agent: Provides factual information, analysis, and logical reasoning
 3. Weather Agent: Provides weather details
+3. Logic Gate Agent: Provides logic operation of Gates (AND and OR)
 
 Architecture:
-    START → Classifier → Router → [Emotional Agent | Logical Agent | Weather Agent] → END
+    START → Classifier → Router → [Emotional Agent | Logical Agent | Weather Agent | Gate Agent] → END
 
 Requirements:
     - Ollama running locally with llama3.2:1b models
-    - pip install langchain-ollama langgraph python-dotenv
+    - pip install -r requirements.txt
 
 Author: Mazhar Hassan
 Date: 2025
@@ -37,7 +38,7 @@ load_dotenv()
 
 def classify_message(state: State) -> dict:
     """
-     Classify the user's message as 'emotional', 'logical', or 'weather' using structured output.
+     Classify the user's message as 'emotional', 'logical', 'weather', or 'gate' using structured output.
 
     Args:
         state: Current conversation state containing messages
@@ -95,7 +96,7 @@ def build_chatbot_graph() -> StateGraph:
     Construct the conversation flow graph.
 
     Flow:
-        START → classify_message → route_to_agent → [emotional_agent | logical_agent] → END
+        START → classify_message → route_to_agent → [emotional_agent | logical_agent | weather_agent | logica_gate_agent] → END
 
     Returns:
         StateGraph: Compiled conversation graph
@@ -158,11 +159,12 @@ def run_chatbot():
 
     # Welcome message
     print("=" * 60)
-    print("🤖 Triple-AGENT CHATBOT")
+    print("🤖 Quad-AGENT CHATBOT (4 Agents)")
     print("=" * 60)
     print("💝 Emotional Agent: Provides empathy and emotional support")
     print("🧠 Logical Agent: Provides facts and logical analysis")
     print("🌞 Weather Agent: Provides weather details")
+    print("🧮 Gate Agent: Provides operation results of AND and OR Gate")
     print()
     print("💬 Type your message and I'll route it to the right agent!")
     print("📝 Type 'exit', 'quit', or 'bye' to end the conversation")
