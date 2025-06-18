@@ -1,6 +1,6 @@
 import os
 import requests
-from agent_helpers import lama3_2_llm, State
+from llm_definition import lama3_2_llm, State
 
 
 def get_weather_fake_data(city):

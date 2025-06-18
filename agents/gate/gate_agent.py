@@ -1,4 +1,4 @@
-from agent_helpers import phi3_llm, lama3_2_llm
+from llm_definition import phi3_llm, lama3_2_llm
 from agents.gate.train_model import LogicGateModel
 import torch
 import joblib

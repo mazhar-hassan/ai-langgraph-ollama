@@ -1,8 +1,7 @@
+from llm_definition import State, phi3_llm
+from message_helper import extract_last_message
 from pydantic import BaseModel, Field
 from typing import Literal
-
-from sympy import pretty_print
-
 
 # =============================================================================
 # PYDANTIC MODELS FOR STRUCTURED OUTPUT
@@ -20,6 +19,35 @@ class MessageClassifier(BaseModel):
         description="Classify if the message requires emotional, logical, weather, or logic gate response."
     )
 
+# =============================================================================
+# CLASSIFIER Agent
+# =============================================================================
+
+
+def classifier_agent(state: State) -> dict:
+    """
+     Classify the user's message as 'emotional', 'logical', 'weather', or 'gate' using structured output.
+
+    Args:
+        state: Current conversation state containing messages
+
+    Returns:
+        dict: Updated state with message_type classification
+
+    Note:
+        Uses Pydantic MessageClassifier for automatic validation and structured output.
+        Falls back to manual parsing if structured output fails (for local models).
+   """
+
+    message_content = extract_last_message(state)
+
+    try:
+        #return classify_by_llm(logical_llm, message_content)
+        return classify_with_structured_output(phi3_llm, message_content)
+    except Exception as structured_error:
+        print(f"⚠️ Structured output failed: {structured_error}")
+        print("🔄 Falling back to manual parsing...")
+        return classify_with_llm(phi3_llm, message_content)
 
 def classify_with_structured_output(llm, message_content):
     # Enhanced system prompt for three-way classification
@@ -86,3 +114,29 @@ def classify_with_llm(llm, message_content):
         print(f"❌ LLM classification failed: {e}")
         print("🔄 Defaulting to logical agent...")
         return {"message_type": "logical"}
+
+
+# =============================================================================
+# DIAGNOSTICS AND TESTING
+# =============================================================================
+
+def test_classification():
+    """Test both structured and manual classification methods."""
+    print("🧪 Testing Classification Function")
+    print("=" * 40)
+
+    test_cases = [
+        ("I'm feeling really sad today", "emotional"),
+        ("How do computers work?", "logical"),
+        ("My relationship is falling apart", "emotional"),
+        ("What's the capital of France?", "logical"),
+        ("I can't sleep because of anxiety", "emotional"),
+        ("Explain quantum physics", "logical")
+    ]
+
+    for message, expected in test_cases:
+        state = {"messages": [{"role": "user", "content": message}]}
+        result = classifier_agent(state)
+        actual = result["message_type"]
+        status = "✅" if actual == expected else "❌"
+        print(f"{status} '{message[:30]}...' → {actual} (expected: {expected})")
